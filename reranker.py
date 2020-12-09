@@ -5,6 +5,7 @@ import json
 import numpy as np
 from operator import attrgetter
 import sys
+import ast
 
 from pyserini import search
 from pyserini import index
@@ -100,7 +101,6 @@ if args.year is not None:
 print(f'\nIndex: resources/Index/{args.index}')
 print(f'Topics were retrieved from resources/topics-and-qrels/{args.topics}')
 print(f'Results are stored in resources/output/runs/{args.output}\n')
-print('hello')
 utils.create_new_file_for_sure(f'resources/output/{args.output}')
 
 # '../database_utils/db/rel_entity_reader.db'
@@ -113,9 +113,6 @@ if args.term_embedding > 0 and args.embedding != '':
     print('Embeddings sucessfully loaded!')
 else:
     embeddings = {}
-
-print('hello')
-group21_utils.my_test()
 
 # Load index
 index_utils = index.IndexReader(f'resources/Index/{args.index}')
@@ -141,6 +138,9 @@ topics = utils.read_topics_and_ids_from_file(
 for topic_num, topic in tqdm(topics):  # tqdm(topics.items()):
     query_num = str(topic_num)
     query_id = topic  # ['title']
+
+    #raw_doc = ast.literal_eval(index_utils.doc_raw(query_id))
+    #print(type(raw_doc))
 
     query_graph = Graph(query_id, f'query_article_{query_num}')
     query_graph.build(**build_arguments)
