@@ -34,8 +34,11 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
 
         # group 21 work
         first_par = group21_utils.get_first_paragraph(index_utils, docid)
-        print(first_par)
-        print("\n________________________________________________\n\n\n")
+        if first_par == None:
+           print("Didn't find a first paragraph!")
+        elif len(first_par) == 0:
+           print("Paragraph is of length zero!")
+        #print("\n________________________________________________\n\n\n")
 
 
         # Retrieve top n tfidf terms from database.
