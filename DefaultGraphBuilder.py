@@ -34,12 +34,8 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
 
         # group 21 work
         first_par = group21_utils.get_first_paragraph(index_utils, docid)
-        if first_par == None:
-           print("Didn't find a first paragraph!")
-        elif len(first_par) == 0:
-           print("Paragraph is of length zero!")
-        #print("\n________________________________________________\n\n\n")
-
+        print(first_par)
+        
 
         # Retrieve top n tfidf terms from database.
 
@@ -47,6 +43,10 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
             terms = db_utils.get_entities_from_docid(
                 cursor, docid, 'tfidf_terms')[:nr_terms]
 
+            print([term[0] for term in terms[:30]])
+            print("_________________________________________")
+            #print(type(terms)) List
+            #print(type(terms[0])) List
             # Create nodes for tfidf terms
             for term in terms[:nr_terms]:  # [['Washington Redskins', '[30]', '1', 'ORG']]
                 term_name = term[0]
