@@ -1,5 +1,6 @@
 from bglinking.general_utils.str_to_dict import turn_into_dict
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 import nltk
 nltk.download('punkt')
 from nltk.stem import PorterStemmer
@@ -18,6 +19,7 @@ def get_first_paragraph(index_utils, docid):
    raw_doc = raw_doc.replace(u'\xa0', u' ')
    doc_dict = turn_into_dict(raw_doc) 
    url = doc_dict['article_url']
+   #print(url)
    contents = doc_dict['contents']
    for c in contents:
       if c == None:
@@ -35,3 +37,30 @@ def get_first_paragraph(index_utils, docid):
       words_list[i] = ps.stem(words_list[i])
    return words_list
 
+
+def collect_all_first_paragraph_terms(index_utils, topics):
+   """
+   collection is a List of all terms that are in the first paragraphs of all the documents.
+   """
+   T = []
+   # gather all terms from each document at once
+   for _, docid in tqdm(topics):
+      first_par = get_first_paragraph(index_utils, docid)
+      T += first_par
+   print(len(T))
+   return T
+
+def write_collection_counts(term_collection):
+   unique_terms = list(set(term_collection))
+   f = open("collection_counts.txt", "w")
+   for term in unique_terms:
+      count = term_collection.count(term)
+      f.write(term + " " + str(count)) 
+   f.close()
+
+
+   
+   
+    
+      
+      

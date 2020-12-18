@@ -14,6 +14,12 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
     def build(self, graph, cursor, embeddings, index_utils, docid, use_entities, nr_terms=0, term_tfidf=0.0, term_position=0.0, text_distance=0.0, term_embedding=0.0):
         # Retrieve named entities from database.
         
+        #print("Term_tfidf: ")
+        #print(term_tfidf)
+
+        #print("term_position:")
+        #print(term_position)        
+
         if use_entities:
             entities = db_utils.get_entities_from_docid(
                 cursor, docid, 'entity_ids')
@@ -33,43 +39,54 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
                 graph.add_node(Node(ent_name, ent_type, ent_positions, ent_tf))
 
         # group 21 work
-        first_par = group21_utils.get_first_paragraph(index_utils, docid)
-        print(first_par)
+        first_par_terms = group21_utils.get_first_paragraph(index_utils, docid)
         
-
-        # Retrieve top n tfidf terms from database.
-
+        
+        # Retrieve top n tfidf terms from database.        
         if nr_terms > 0.0:
             terms = db_utils.get_entities_from_docid(
                 cursor, docid, 'tfidf_terms')[:nr_terms]
-
-            print([term[0] for term in terms[:30]])
-            print("_________________________________________")
-            #print(type(terms)) List
-            #print(type(terms[0])) List
+         
             # Create nodes for tfidf terms
             for term in terms[:nr_terms]:  # [['Washington Redskins', '[30]', '1', 'ORG']]
+                #term_positions is the index of the paragraphs in which the term occurs, first paragraph is index 3.
+                #term_tf is the number of times the term occurs in the document
+                
                 term_name = term[0]
                 term_positions = json.loads(term[1])
                 term_tf = int(term[2])
-                graph.add_node(
-                    Node(term_name, 'term', term_positions, term_tf))
-
+                # if the term is in the first paragraph (index 3):
+                #if 3 in term_positions:
+                   #term_tf = first_par_terms.count(term_name)
+                   #print("New term_tf:")
+                   #print(term_tf)
+                   # compute the number of times this word occurs in the first paragraph, assign this to term_tf
+                graph.add_node(Node(term_name, 'term', term_positions, term_tf))
+        """
+        for term in first_par_terms:
+           term_tf = first_par_terms.count(term)
+           #print(term_tf)
+           graph.add_node(Node(term, 'term', [3], term_tf))
+        """
         # Determine node weighs
         N = graph.nr_nodes()
-        n_stat = index_utils.stats()['documents']
+        n_stat = index_utils.stats()['documents'] # Number of documents |c|
         for node_name, node in graph.nodes.items():
             weight = 0.0
             if term_tfidf > 0:
+                # computes tf_td
                 tf = tf_func(node, N)
 
                 if node.node_type == 'term':
+                    # error here currently
                     df = index_utils.get_term_counts(
                         utils.clean_NE_term(node_name), analyzer=None)[0] + 1e-5
+                    # computes W_td
                     weight += utils.tfidf(tf, df, n_stat)
                 else:
                     weight += tf
 
+            # by default NOT USED
             if term_position > 0:
                 weight += term_position * \
                     position_in_text(node, docid, index_utils)
