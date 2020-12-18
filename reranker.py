@@ -11,6 +11,7 @@ from pyserini import index
 from pyserini import analysis
 
 from bglinking.general_utils import utils
+from bglinking.general_utils.str_to_dict import turn_into_dict
 from bglinking.general_utils import group21_utils
 from bglinking.database_utils import db_utils
 from bglinking.graph.graph import Graph
@@ -133,18 +134,21 @@ build_arguments = {'index_utils': index_utils,
 topics = utils.read_topics_and_ids_from_file(
     f'resources/topics-and-qrels/{args.topics}')
 
-# Group21
-
-group21_utils.collect_all_first_paragraph_terms(index_utils, topics)
-# Count how many times each term existing in a first paragraph occurs in all documents' first paragraphs
-#group21_utils.write_collection_counts(collection)
-
 for topic_num, topic in tqdm(topics):  # tqdm(topics.items()):
     query_num = str(topic_num)
     query_id = topic  # ['title']
 
+    raw_doc = index_utils.doc_raw(query_id).replace(u'\xa0', u' ')
+    url = turn_into_dict(raw_doc)['article_url']
+    print(url)
+
     query_graph = Graph(query_id, f'query_article_{query_num}')
     query_graph.build(**build_arguments)
+    print("Number of nodes in query-graph:")
+    print(query_graph.nr_nodes())
+    for node_name, _ in query_graph.nodes.items():
+       print(node_name)
+    print("__________________________")
 
     # recalculate node weights using TextRank
     if args.textrank:

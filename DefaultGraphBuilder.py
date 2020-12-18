@@ -41,12 +41,12 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
         # group 21 work
         first_par_terms = group21_utils.get_first_paragraph(index_utils, docid)
         
-        
+        """
         # Retrieve top n tfidf terms from database.        
         if nr_terms > 0.0:
             terms = db_utils.get_entities_from_docid(
                 cursor, docid, 'tfidf_terms')[:nr_terms]
-         
+        
             # Create nodes for tfidf terms
             for term in terms[:nr_terms]:  # [['Washington Redskins', '[30]', '1', 'ORG']]
                 #term_positions is the index of the paragraphs in which the term occurs, first paragraph is index 3.
@@ -67,7 +67,7 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
            term_tf = first_par_terms.count(term)
            #print(term_tf)
            graph.add_node(Node(term, 'term', [3], term_tf))
-        """
+        
         # Determine node weighs
         N = graph.nr_nodes()
         n_stat = index_utils.stats()['documents'] # Number of documents |c|
@@ -78,7 +78,7 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
                 tf = tf_func(node, N)
 
                 if node.node_type == 'term':
-                    # error here currently
+                    #print(node_name)
                     df = index_utils.get_term_counts(
                         utils.clean_NE_term(node_name), analyzer=None)[0] + 1e-5
                     # computes W_td
@@ -90,7 +90,6 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
             if term_position > 0:
                 weight += term_position * \
                     position_in_text(node, docid, index_utils)
-
             node.weight = weight
 
         # Enity weights differ in magnitide from terms, since they are tf only (normalize both individually).
