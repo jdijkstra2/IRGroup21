@@ -138,17 +138,22 @@ for topic_num, topic in tqdm(topics):  # tqdm(topics.items()):
     query_num = str(topic_num)
     query_id = topic  # ['title']
 
-    raw_doc = index_utils.doc_raw(query_id).replace(u'\xa0', u' ')
-    url = turn_into_dict(raw_doc)['article_url']
-    print(url)
-
     query_graph = Graph(query_id, f'query_article_{query_num}')
     query_graph.build(**build_arguments)
+    
+    """
+    # For debugging purposes
+
+    raw_doc = index_utils.doc_raw(query_id).replace(u'\xa0', u' ')
+    url = turn_into_dict(raw_doc)['article_url']
+
+    print(url)
     print("Number of nodes in query-graph:")
     print(query_graph.nr_nodes())
     for node_name, _ in query_graph.nodes.items():
        print(node_name)
     print("__________________________")
+    """
 
     # recalculate node weights using TextRank
     if args.textrank:
@@ -208,8 +213,10 @@ for topic_num, topic in tqdm(topics):  # tqdm(topics.items()):
             del sorted_ranking[key]
 
     # Store results in txt file.
+    
     utils.write_to_results_file(
         sorted_ranking, query_num, args.run_tag, f'resources/output/{args.output}')
+    
 
 if args.year != 20:
     # Evaluate performance with trec_eval.

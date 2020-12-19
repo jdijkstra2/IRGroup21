@@ -36,11 +36,8 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
                 ent_tf = int(entity[2])
                 ent_type = entity[3]
 
-                graph.add_node(Node(ent_name, ent_type, ent_positions, ent_tf))
+                graph.add_node(Node(ent_name, ent_type, ent_positions, ent_tf))        
 
-        # group 21 work
-        first_par_terms = group21_utils.get_first_paragraph(index_utils, docid)
-        
         """
         # Retrieve top n tfidf terms from database.        
         if nr_terms > 0.0:
@@ -51,21 +48,23 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
             for term in terms[:nr_terms]:  # [['Washington Redskins', '[30]', '1', 'ORG']]
                 #term_positions is the index of the paragraphs in which the term occurs, first paragraph is index 3.
                 #term_tf is the number of times the term occurs in the document
-                
                 term_name = term[0]
                 term_positions = json.loads(term[1])
                 term_tf = int(term[2])
-                # if the term is in the first paragraph (index 3):
-                #if 3 in term_positions:
-                   #term_tf = first_par_terms.count(term_name)
-                   #print("New term_tf:")
-                   #print(term_tf)
-                   # compute the number of times this word occurs in the first paragraph, assign this to term_tf
                 graph.add_node(Node(term_name, 'term', term_positions, term_tf))
         """
+
+        # IR Group 21 code
+
+        # obtain the terms of first paragraph and title
+        first_par_terms = group21_utils.get_first_paragraph(index_utils, docid)
+         
         for term in first_par_terms:
+
+           # compute the tf score
            term_tf = first_par_terms.count(term)
-           #print(term_tf)
+
+           # add node to graph
            graph.add_node(Node(term, 'term', [3], term_tf))
         
         # Determine node weighs
@@ -78,7 +77,6 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
                 tf = tf_func(node, N)
 
                 if node.node_type == 'term':
-                    #print(node_name)
                     df = index_utils.get_term_counts(
                         utils.clean_NE_term(node_name), analyzer=None)[0] + 1e-5
                     # computes W_td
@@ -86,7 +84,6 @@ class DefaultGraphBuilder(InformalGraphBuilderInterface):
                 else:
                     weight += tf
 
-            # by default NOT USED
             if term_position > 0:
                 weight += term_position * \
                     position_in_text(node, docid, index_utils)

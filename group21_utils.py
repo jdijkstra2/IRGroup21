@@ -5,26 +5,30 @@ import nltk
 nltk.download('punkt')
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+nltk.download('stopwords')
 
 import ast
 
 def get_first_paragraph(index_utils, docid):
    """
-   returns the first paragraph of the document with docid in the form of a List of Strings
+   Returns the words in the first paragraph of a document, along with the words of the title
    """
+   
+   # the following terms will not count as words
    garbage_terms = [',', '.', '&', '-', '"', '`', ' ', '_', '$', '%', '#', '@', '*', '(', ')', '``', '\'\'', '\"', '\"\"', '--', '..', '...', '....']
 
-   only_first_paragraph = False
-   only_first_real_paragraph = False
-   both = True
-
    ps = PorterStemmer()
-
+   
+   # obtain contents of the document
    raw_doc = index_utils.doc_raw(docid).replace(u'\xa0', u' ')
-   doc_dict = turn_into_dict(raw_doc) 
-   url = doc_dict['article_url']
 
+   # convert to dictionary
+   doc_dict = turn_into_dict(raw_doc) 
+
+   url = doc_dict['article_url']
    contents = doc_dict['contents']
+      
    words_list = []
 
    for c in contents:
@@ -32,27 +36,39 @@ def get_first_paragraph(index_utils, docid):
          pass
       else:
          if 'subtype' in c.keys():
+
+            # only consider paragraphs
             if c['subtype'] == 'paragraph':
+
+               # extract the content
                first_paragraph = c['content']
+               
+               # remove html markup
                first_paragraph = BeautifulSoup(first_paragraph, "lxml").text
                
+               # tokenize the paragraph
                words = word_tokenize(first_paragraph)
-               words = [word for word in words if word not in garbage_terms and len(word) > 1]
-               words_list += words
 
-               if both:
-                  if len(words_list) > 20:
-                     break
-               elif only_first_paragraph:
-                  if len(words_list) > 0:
-                     break
-               elif only_first_real_paragraph:
-                  pass
+               # remove garbage words and stopwords
+               words = [word for word in words if word not in garbage_terms and len(word) > 2 and word not in stopwords.words('english')]
+               
+               if len(words) > 20:
+                  # if this was the 'real' first paragraph, and not a short 'clickbait' oneliner
+                  words_list += words
+                  break
+   
+   # add the title words
+   title = doc_dict['title']
 
+   if title:
+      title_words = word_tokenize(title)
+      title_words = [word for word in title_words if word not in garbage_terms and len(word) > 2 and word not in stopwords.words('english')]
+      words_list += title_words   
+
+   # stem all words            
    for i in range(len(words_list)):
       words_list[i] = ps.stem(words_list[i])
 
-   #print(len(words_list))
    return words_list
 
 
